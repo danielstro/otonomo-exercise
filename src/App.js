@@ -1,40 +1,32 @@
 import React, { Component } from 'react'
-import logo from './logo.svg'
 import './App.css'
-import createStreamerFrom from './api/streamer'
-import generateCarData from './api/data-generator'
+import EventList from './components/EventList';
+import VinView from './components/VinView';
+import Emitter from './emitter';
 
 class App extends Component {
-  streamer = createStreamerFrom(() => generateCarData('12345678901234567'))
+  emitter = new Emitter();
+  state = {cars: []}
 
-  state = { carData: {} }
-
-  updateState = carData => {
-    this.setState({ carData })
+  onSubmit = (value) => {
+    const newCar = {vin: value, isChecked: true};
+    this.setState({cars: [...this.state.cars, newCar]});
   }
 
-  componentDidMount() {
-    this.streamer.subscribe(this.updateState)
-    this.streamer.start()
+  toggleFilter = (vin) => {
+    const newCars = [...this.state.cars];
+    const car = newCars.find((c => c.vin === vin));
+    car.isChecked = !car.isChecked;
+    this.setState({cars: newCars})
   }
 
   render() {
     return (
       <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-            {JSON.stringify(this.state.carData)}
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer">
-            Learn React
-          </a>
-        </header>
+        <VinView onSubmit={this.onSubmit} vins={this.state.cars} toggleFilter={this.toggleFilter} />
+        <div>
+          <EventList vins={this.state.cars} emitter={this.emitter} />
+        </div>
       </div>
     )
   }
